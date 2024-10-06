@@ -1,0 +1,67 @@
+name: CI/CD
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      docker:
+        image: docker:19.03.12
+        options: --privileged
+        ports:
+          - 5432:5432
+          - 8000:8000
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Clone catapult repository
+      run: git clone https://github.com/noatgnu/catapult
+
+    - name: Enter catapult directory
+      run: cd catapult
+
+    - name: Set up Docker
+      uses: docker/setup-buildx-action@v1
+
+    - name: Install Docker Compose
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y docker-compose
+
+    - name: Set up Docker Compose
+      run: docker-compose -f docker-compose.ci.yml up --build -d
+
+    - name: Check docker containers
+      run: docker ps
+
+    - name: Migrate
+      run: |
+        docker-compose exec -T catapult python manage.py makemigrations
+        docker-compose exec -T catapult python manage.py migrate
+        docker-compose exec -T catapult mkdir /backups
+        docker-compose exec -T catapult mv default-b4f07dad3b81-2024-08-06-114541.psql.bin /backups
+        docker-compose exec -T catapult python manage.py dbrestore --noinput -i default-b4f07dad3b81-2024-08-06-114541.psql.bin
+
+    - name: Wait for service to be ready
+      run: |
+        for i in {1..10}; do
+          curl -H "Accept: application/json" http://localhost:8000/api/files/ && break
+          echo "Service not ready, retrying in 5 seconds..."
+          sleep 5
+        done
+
+    - name: Get User Token && Assign to GitHub Variable
+      run: |
+        docker-compose exec -T catapult python manage.py shell -c "from rest_framework.authtoken.models import Token; print(Token.objects.first().key)" > token.txt
+        TOKEN=$(cat token.txt)
+        echo "API_TOKEN=$TOKEN" >> $GITHUB_ENV
+
+    - name: Exit catapult directory
+      run: cd ..
+
+    - name: Run tests for catapult_sentinel
+      run: go test ./catapult_sentinel/...

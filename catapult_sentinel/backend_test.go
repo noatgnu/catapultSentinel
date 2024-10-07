@@ -83,7 +83,10 @@ func TestCatapultBackend_GetFiles(t *testing.T) {
 				Token:  os.Getenv("API_TOKEN"),
 			},
 			args: args{
-				filePaths: []string{"D:\\watch_folder\\MRC-Astral\\1000ngHeLa_180SPD_ES906_20240214_01.raw"},
+				filePaths: []string{
+					"D:\\watch_folder\\MRC-Astral\\1000ngHeLa_180SPD_ES906_20240214_01.raw",
+					"D:\\watch_folder\\MRC-Astral\\1000ngHeLa_180SPD_ES906_20240214_02.raw",
+				},
 			},
 		},
 	}
@@ -102,47 +105,6 @@ func TestCatapultBackend_GetFiles(t *testing.T) {
 				if file.Id == 0 {
 					t.Errorf("GetFiles() Id = %v, want non-zero", file.Id)
 				}
-			}
-		})
-	}
-}
-
-func TestCatapultBackend_GetFileById(t *testing.T) {
-	type fields struct {
-		Url    string
-		Client *http.Client
-		Token  string
-	}
-	type args struct {
-		fileId int
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-	}{
-		{
-			name: "Test GetFileById",
-			fields: fields{
-				Url:    "http://localhost:8000/",
-				Client: &http.Client{},
-				Token:  os.Getenv("API_TOKEN"),
-			},
-			args: args{
-				fileId: 5,
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			c := &CatapultBackend{
-				Url:    tt.fields.Url,
-				Client: tt.fields.Client,
-				Token:  tt.fields.Token,
-			}
-			got := c.GetFileById(tt.args.fileId)
-			if got.Id == 0 {
-				t.Errorf("GetFileById() Id = %v, want non-zero", got.Id)
 			}
 		})
 	}
@@ -170,7 +132,7 @@ func TestCatapultBackend_GetExperimentsByNames(t *testing.T) {
 				Token:  os.Getenv("API_TOKEN"),
 			},
 			args: args{
-				experimentNames: []string{"Experiment1", "Experiment2"},
+				experimentNames: []string{"Experiment1", "Experiment2", "Experiment3"},
 			},
 		},
 	}
@@ -192,15 +154,159 @@ func TestCatapultBackend_GetExperimentsByNames(t *testing.T) {
 			}
 		})
 	}
+
 }
 
-func TestCatapultBackend_GetExperimentById(t *testing.T) {
+func TestCatapultBackend_UpdateFile(t *testing.T) {
 	type fields struct {
 		Url    string
 		Client *http.Client
 		Token  string
 	}
 	type args struct {
+		file File
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+	}{
+		{
+			name: "Test UpdateFile",
+			fields: fields{
+				Url:    "http://localhost:8000/",
+				Client: &http.Client{},
+				Token:  os.Getenv("API_TOKEN"),
+			},
+			args: args{
+				file: File{
+					Id:                     5,
+					FilePath:               "D:\\watch_folder\\MRC-Astral\\1000ngHeLa_180SPD_ES906_20240214_01.raw",
+					FolderWatchingLocation: 1,
+					Size:                   3181910116,
+					Experiment:             1,
+					Processing:             false,
+					ReadyForProcessing:     true,
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := &CatapultBackend{
+				Url:    tt.fields.Url,
+				Client: tt.fields.Client,
+				Token:  tt.fields.Token,
+			}
+			got := c.UpdateFile(tt.args.file)
+			if got.Id == 0 {
+				t.Errorf("UpdateFile() Id = %v, want non-zero", got.Id)
+			}
+		})
+	}
+}
+
+func TestCatapultBackend_UpdateExperiments(t *testing.T) {
+	type fields struct {
+		Url    string
+		Client *http.Client
+		Token  string
+	}
+	type args struct {
+		experiments []Experiment
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+	}{
+		{
+			name: "Test UpdateExperiments",
+			fields: fields{
+				Url:    "http://localhost:8000/",
+				Client: &http.Client{},
+				Token:  os.Getenv("API_TOKEN"),
+			},
+			args: args{
+				experiments: []Experiment{
+					{Id: 1, ExperimentName: "Experiment1"},
+					{Id: 2, ExperimentName: "Experiment2"},
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := &CatapultBackend{
+				Url:    tt.fields.Url,
+				Client: tt.fields.Client,
+				Token:  tt.fields.Token,
+			}
+			got := c.UpdateExperiments(tt.args.experiments)
+			if len(got) <= 1 {
+				t.Errorf("UpdateExperiments() length = %v, want > 1", len(got))
+			}
+			for _, experiment := range got {
+				if experiment.Id == 0 {
+					t.Errorf("UpdateExperiments() Id = %v, want non-zero", experiment.Id)
+				}
+			}
+		})
+	}
+}
+func TestCatapultBackend_CreateCatapultRunConfig(t *testing.T) {
+	type fields struct {
+		Url    string
+		Client *http.Client
+		Token  string
+	}
+	type args struct {
+		config CatapultRunConfig
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+	}{
+		{
+			name: "Test CreateCatapultRunConfig",
+			fields: fields{
+				Url:    "http://localhost:8000/",
+				Client: &http.Client{},
+				Token:  os.Getenv("API_TOKEN"),
+			},
+			args: args{
+				config: CatapultRunConfig{
+					Id:         0,
+					Experiment: 1,
+					Content:    make(map[string]interface{}),
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := &CatapultBackend{
+				Url:    tt.fields.Url,
+				Client: tt.fields.Client,
+				Token:  tt.fields.Token,
+			}
+			got := c.CreateCatapultRunConfig(tt.args.config)
+			if got.Id == 0 {
+				t.Errorf("CreateCatapultRunConfig() Id = %v, want non-zero", got.Id)
+			}
+		})
+	}
+}
+
+func TestCatapultBackend_FilterCatapultRunConfig(t *testing.T) {
+	type fields struct {
+		Url    string
+		Client *http.Client
+		Token  string
+	}
+	type args struct {
+		prefix       string
 		experimentId int
 	}
 	tests := []struct {
@@ -209,13 +315,14 @@ func TestCatapultBackend_GetExperimentById(t *testing.T) {
 		args   args
 	}{
 		{
-			name: "Test GetExperimentById",
+			name: "Test FilterCatapultRunConfig",
 			fields: fields{
 				Url:    "http://localhost:8000/",
 				Client: &http.Client{},
 				Token:  os.Getenv("API_TOKEN"),
 			},
 			args: args{
+				prefix:       "1",
 				experimentId: 1,
 			},
 		},
@@ -227,9 +334,14 @@ func TestCatapultBackend_GetExperimentById(t *testing.T) {
 				Client: tt.fields.Client,
 				Token:  tt.fields.Token,
 			}
-			got := c.GetExperimentById(tt.args.experimentId)
-			if got.Id == 0 {
-				t.Errorf("GetExperimentById() Id = %v, want non-zero", got.Id)
+			got := c.FilterCatapultRunConfig(tt.args.prefix, tt.args.experimentId)
+			if len(got.Results) == 0 {
+				t.Errorf("FilterCatapultRunConfig() length = %v, want > 0", len(got.Results))
+			}
+			for _, config := range got.Results {
+				if config.Id == 0 {
+					t.Errorf("FilterCatapultRunConfig() Id = %v, want non-zero", config.Id)
+				}
 			}
 		})
 	}

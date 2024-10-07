@@ -132,7 +132,7 @@ func TestCatapultBackend_GetExperimentsByNames(t *testing.T) {
 				Token:  os.Getenv("API_TOKEN"),
 			},
 			args: args{
-				experimentNames: []string{"Experiment1", "Experiment2", "Experiment3"},
+				experimentNames: []string{"D:\\watch_folder\\MRC-Astral", "D:\\watch_folder\\MRC-Astral2", "Experiment3"},
 			},
 		},
 	}

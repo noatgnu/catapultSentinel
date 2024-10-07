@@ -275,9 +275,10 @@ func TestCatapultBackend_CreateCatapultRunConfig(t *testing.T) {
 			},
 			args: args{
 				config: CatapultRunConfig{
-					Id:         0,
-					Experiment: 1,
-					Content:    make(map[string]interface{}),
+					Id:             0,
+					Experiment:     1,
+					Content:        make(map[string]interface{}),
+					ConfigFilePath: "D:\\watch_folder\\MRC-Astral\\test.cat.yaml",
 				},
 			},
 		},

@@ -356,7 +356,7 @@ func (c *CatapultBackend) CreateExperiment(experiment Experiment) Experiment {
 }
 
 func (c *CatapultBackend) GetExperimentByName(experimentName string) Experiment {
-	baseUrl, err := url.Parse(c.Url + "api/experiments/")
+	baseUrl, err := url.Parse(c.Url + "api/experiments/get_exact_name/")
 	if err != nil {
 		log.Panicf("Error parsing URL: %s", err)
 	}
@@ -403,7 +403,7 @@ func (c *CatapultBackend) GetExperimentByName(experimentName string) Experiment 
 }
 
 func (c *CatapultBackend) GetExperimentsByNames(experimentNames []string) []Experiment {
-	baseUrl, err := url.Parse(c.Url + "api/experiments/")
+	baseUrl, err := url.Parse(c.Url + "api/experiments/get_exact_names/")
 	if err != nil {
 		log.Panicf("Error parsing URL: %s", err)
 	}

@@ -271,14 +271,14 @@ func TestCatapultBackend_CreateCatapultRunConfig(t *testing.T) {
 			fields: fields{
 				Url:    "http://localhost:8000/",
 				Client: &http.Client{},
-				Token:  os.Getenv("API_TOKEN"),
+				Token:  "0dc94228b003bed3c5695e1962727ad1eade7ef8",
 			},
 			args: args{
 				config: CatapultRunConfig{
 					Id:             0,
 					Experiment:     1,
 					Content:        make(map[string]interface{}),
-					ConfigFilePath: "D:\\watch_folder\\MRC-Astral\\test.cat.yaml",
+					ConfigFilePath: "catapult/management/commands/diann_config.cat.yml",
 				},
 			},
 		},

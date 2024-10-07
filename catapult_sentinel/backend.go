@@ -3,7 +3,6 @@ package catapult_sentinel
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"net/url"
@@ -252,8 +251,6 @@ func (c *CatapultBackend) UpdateFile(file File) File {
 		log.Panicf("Error marshaling body: %s", err)
 	}
 
-	fmt.Printf("URL: %s\n", baseUrl.String())
-
 	req, err := http.NewRequest("PUT", baseUrl.String(), bytes.NewBuffer(bodyJson))
 	if err != nil {
 		log.Panicf("Error creating request: %s", err)
@@ -266,7 +263,7 @@ func (c *CatapultBackend) UpdateFile(file File) File {
 		log.Panicf("Error sending request: %s", err)
 	}
 	defer resp.Body.Close()
-
+	log.Printf("Response: %v", resp.Body)
 	if resp.StatusCode != http.StatusOK {
 		log.Panicf("Error: %s", resp.Status)
 	}

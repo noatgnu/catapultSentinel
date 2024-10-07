@@ -1,7 +1,6 @@
 package catapult_sentinel
 
 import (
-	"log"
 	"net/http"
 	"os"
 	"reflect"
@@ -292,7 +291,6 @@ func TestCatapultBackend_CreateCatapultRunConfig(t *testing.T) {
 				Token:  tt.fields.Token,
 			}
 			got := c.CreateCatapultRunConfig(tt.args.config)
-			log.Printf("Got: %v", got)
 			if got.Id == 0 {
 				t.Errorf("CreateCatapultRunConfig() Id = %v, want non-zero", got.Id)
 			}
@@ -324,7 +322,7 @@ func TestCatapultBackend_FilterCatapultRunConfig(t *testing.T) {
 			},
 			args: args{
 				prefix:       "1",
-				experimentId: 1,
+				experimentId: 2,
 			},
 		},
 	}

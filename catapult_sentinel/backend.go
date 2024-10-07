@@ -578,7 +578,7 @@ func (c *CatapultBackend) UpdateExperiments(experiments []Experiment) []Experime
 }
 
 func (c *CatapultBackend) CreateCatapultRunConfig(config CatapultRunConfig) CatapultRunConfig {
-	baseUrl, err := url.Parse(c.Url + "api/catapult_run_config/")
+	baseUrl, err := url.Parse(c.Url + "api/catapultrunconfig/")
 	if err != nil {
 		log.Panicf("Error parsing URL: %s", err)
 	}

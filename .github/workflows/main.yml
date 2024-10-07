@@ -65,3 +65,6 @@ jobs:
 
     - name: Run tests for catapult_sentinel
       run: go test ./catapult_sentinel/...
+
+    - name: Print last 20 lines of catapult container log
+      run: docker-compose -f docker-compose.ci.yml logs --tail=20 catapult

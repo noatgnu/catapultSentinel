@@ -180,13 +180,11 @@ func TestCatapultBackend_UpdateFile(t *testing.T) {
 			},
 			args: args{
 				file: File{
-					Id:                     5,
-					FilePath:               "D:\\watch_folder\\MRC-Astral\\1000ngHeLa_180SPD_ES906_20240214_01.raw",
-					FolderWatchingLocation: 1,
-					Size:                   3181910116,
-					Experiment:             1,
-					Processing:             false,
-					ReadyForProcessing:     true,
+					Id:                 5,
+					FilePath:           "D:\\watch_folder\\MRC-Astral\\1000ngHeLa_180SPD_ES906_20240214_01.raw",
+					Size:               20000,
+					Processing:         false,
+					ReadyForProcessing: true,
 				},
 			},
 		},

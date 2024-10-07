@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strconv"
 )
 
 type CatapultBackend struct {
@@ -165,7 +166,7 @@ func (c *CatapultBackend) GetFiles(filePaths []string) []File {
 }
 
 func (c *CatapultBackend) GetFileById(fileId int) File {
-	baseUrl, err := url.Parse(c.Url + "api/files/" + string(rune(fileId)) + "/")
+	baseUrl, err := url.Parse(c.Url + "api/files/" + strconv.Itoa(fileId) + "/")
 	if err != nil {
 		log.Panicf("Error parsing URL: %s", err)
 	}
@@ -237,7 +238,7 @@ func (c *CatapultBackend) CreateFile(file File) File {
 }
 
 func (c *CatapultBackend) UpdateFile(file File) File {
-	baseUrl, err := url.Parse(c.Url + "api/files/" + string(rune(file.Id)) + "/")
+	baseUrl, err := url.Parse(c.Url + "api/files/" + strconv.Itoa(file.Id) + "/")
 	if err != nil {
 		log.Panicf("Error parsing URL: %s", err)
 	}
@@ -486,7 +487,7 @@ func (c *CatapultBackend) GetExperimentById(experimentId int) Experiment {
 }
 
 func (c *CatapultBackend) UpdateExperiment(experiment Experiment) Experiment {
-	baseUrl, err := url.Parse(c.Url + "api/experiments/" + string(rune(experiment.Id)) + "/")
+	baseUrl, err := url.Parse(c.Url + "api/experiments/" + strconv.Itoa(experiment.Id) + "/")
 	if err != nil {
 		log.Panicf("Error parsing URL: %s", err)
 	}
@@ -618,7 +619,7 @@ func (c *CatapultBackend) FilterCatapultRunConfig(prefix string, experimentId in
 		params.Add("prefix", prefix)
 	}
 	if experimentId != 0 {
-		params.Add("experiment", string(rune(experimentId)))
+		params.Add("experiment", strconv.Itoa(experimentId))
 	}
 
 	baseUrl.RawQuery = params.Encode()

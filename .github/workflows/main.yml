@@ -63,8 +63,5 @@ jobs:
         TOKEN=$(cat token.txt)
         echo "API_TOKEN=$TOKEN" >> $GITHUB_ENV
 
-    - name: Exit catapult directory
-      run: cd ..
-
     - name: Run tests for catapult_sentinel
       run: go test ./catapult_sentinel/...

@@ -1,6 +1,7 @@
 package catapult_sentinel
 
 import (
+	"log"
 	"net/http"
 	"os"
 	"reflect"
@@ -271,7 +272,7 @@ func TestCatapultBackend_CreateCatapultRunConfig(t *testing.T) {
 			fields: fields{
 				Url:    "http://localhost:8000/",
 				Client: &http.Client{},
-				Token:  "0dc94228b003bed3c5695e1962727ad1eade7ef8",
+				Token:  os.Getenv("API_TOKEN"),
 			},
 			args: args{
 				config: CatapultRunConfig{
@@ -291,6 +292,7 @@ func TestCatapultBackend_CreateCatapultRunConfig(t *testing.T) {
 				Token:  tt.fields.Token,
 			}
 			got := c.CreateCatapultRunConfig(tt.args.config)
+			log.Printf("Got: %v", got)
 			if got.Id == 0 {
 				t.Errorf("CreateCatapultRunConfig() Id = %v, want non-zero", got.Id)
 			}

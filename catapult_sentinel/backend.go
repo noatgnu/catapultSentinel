@@ -224,7 +224,7 @@ func (c *CatapultBackend) CreateFile(file File) File {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
 		log.Panicf("Error: %s", resp.Status)
 	}
 
@@ -342,7 +342,7 @@ func (c *CatapultBackend) CreateExperiment(experiment Experiment) Experiment {
 
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
 		log.Panicf("Error: %s", resp.Status)
 	}
 
@@ -601,10 +601,16 @@ func (c *CatapultBackend) CreateCatapultRunConfig(config CatapultRunConfig) Cata
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
 		log.Panicf("Error: %s", resp.Status)
 	}
-	return config
+	decoder := json.NewDecoder(resp.Body)
+	var newConfig CatapultRunConfig
+	err = decoder.Decode(&newConfig)
+	if err != nil {
+		log.Panicf("Error decoding response: %s", err)
+	}
+	return newConfig
 }
 
 func (c *CatapultBackend) FilterCatapultRunConfig(prefix string, experimentId int) CatapultRunConfigQuery {

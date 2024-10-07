@@ -263,7 +263,6 @@ func (c *CatapultBackend) UpdateFile(file File) File {
 		log.Panicf("Error sending request: %s", err)
 	}
 	defer resp.Body.Close()
-	log.Printf("Response: %v", resp.Body)
 	if resp.StatusCode != http.StatusOK {
 		log.Panicf("Error: %s", resp.Status)
 	}

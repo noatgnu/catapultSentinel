@@ -347,3 +347,124 @@ func TestCatapultBackend_FilterCatapultRunConfig(t *testing.T) {
 		})
 	}
 }
+
+func TestCatapultBackend_GetFolderWatchingLocation(t *testing.T) {
+	type fields struct {
+		Url    string
+		Client *http.Client
+		Token  string
+	}
+	type args struct {
+		folderPath string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+	}{
+		{
+			name: "Test GetFolderWatchingLocation",
+			fields: fields{
+				Url:    "http://localhost:8000/",
+				Client: &http.Client{},
+				Token:  os.Getenv("API_TOKEN"),
+			},
+			args: args{
+				folderPath: "D:\\watch_folder",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := &CatapultBackend{
+				Url:    tt.fields.Url,
+				Client: tt.fields.Client,
+				Token:  tt.fields.Token,
+			}
+			got := c.GetFolderWatchingLocation(tt.args.folderPath)
+			if got.Id == 0 {
+				t.Errorf("GetFolderWatchingLocation() Id = %v, want non-zero", got.Id)
+			}
+		})
+	}
+}
+
+func TestCatapultBackend_GetAllFolderWatchingLocations(t *testing.T) {
+	type fields struct {
+		Url    string
+		Client *http.Client
+		Token  string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+	}{
+		{
+			name: "Test GetAllFolderWatchingLocations",
+			fields: fields{
+				Url:    "http://localhost:8000/",
+				Client: &http.Client{},
+				Token:  os.Getenv("API_TOKEN"),
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := &CatapultBackend{
+				Url:    tt.fields.Url,
+				Client: tt.fields.Client,
+				Token:  tt.fields.Token,
+			}
+			got := c.GetAllFolderWatchingLocations()
+			if len(got) == 0 {
+				t.Errorf("GetAllFolderWatchingLocations() length = %v, want > 0", len(got))
+			}
+			for _, location := range got {
+				if location.Id == 0 {
+					t.Errorf("GetAllFolderWatchingLocations() Id = %v, want non-zero", location.Id)
+				}
+			}
+		})
+	}
+}
+
+func TestCatapultBackend_GetFolderWatchingLocationById(t *testing.T) {
+	type fields struct {
+		Url    string
+		Client *http.Client
+		Token  string
+	}
+	type args struct {
+		folderId int
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+	}{
+		{
+			name: "Test GetFolderWatchingLocationById",
+			fields: fields{
+				Url:    "http://localhost:8000/",
+				Client: &http.Client{},
+				Token:  os.Getenv("API_TOKEN"),
+			},
+			args: args{
+				folderId: 1,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := &CatapultBackend{
+				Url:    tt.fields.Url,
+				Client: tt.fields.Client,
+				Token:  tt.fields.Token,
+			}
+			got := c.GetFolderWatchingLocationById(tt.args.folderId)
+			if got.Id == 0 {
+				t.Errorf("GetFolderWatchingLocationById() Id = %v, want non-zero", got.Id)
+			}
+		})
+	}
+}

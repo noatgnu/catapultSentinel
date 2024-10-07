@@ -655,3 +655,119 @@ func (c *CatapultBackend) FilterCatapultRunConfig(prefix string, experimentId in
 	}
 	return configs
 }
+
+func (c *CatapultBackend) GetFolderWatchingLocation(folderPath string) FolderWatchingLocation {
+	baseUrl, err := url.Parse(c.Url + "api/folderlocations/get_exact_path/")
+	if err != nil {
+		log.Panicf("Error parsing URL: %s", err)
+	}
+
+	body := struct {
+		FolderPath string `json:"folder_path"`
+		Create     bool   `json:"create"`
+	}{
+		FolderPath: folderPath,
+		Create:     true,
+	}
+
+	bodyJson, err := json.Marshal(body)
+	if err != nil {
+		log.Panicf("Error marshaling body: %s", err)
+	}
+
+	req, err := http.NewRequest("POST", baseUrl.String(), bytes.NewBuffer(bodyJson))
+	if err != nil {
+		log.Panicf("Error creating request: %s", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Token "+c.Token)
+
+	resp, err := c.Client.Do(req)
+	if err != nil {
+		log.Panicf("Error sending request: %s", err)
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		log.Panicf("Error: %s", resp.Status)
+	}
+
+	decoder := json.NewDecoder(resp.Body)
+	var folderWatchingLocation FolderWatchingLocation
+	err = decoder.Decode(&folderWatchingLocation)
+	if err != nil {
+		log.Panicf("Error decoding response: %s", err)
+	}
+	return folderWatchingLocation
+}
+
+func (c *CatapultBackend) GetAllFolderWatchingLocations() []FolderWatchingLocation {
+	baseUrl, err := url.Parse(c.Url + "api/folderlocations/get_all_paths/")
+	if err != nil {
+		log.Panicf("Error parsing URL: %s", err)
+	}
+
+	req, err := http.NewRequest("GET", baseUrl.String(), nil)
+	if err != nil {
+		log.Panicf("Error creating request: %s", err)
+	}
+
+	req.Header.Set("Authorization", "Token "+c.Token)
+
+	resp, err := c.Client.Do(req)
+	if err != nil {
+		log.Panicf("Error sending request: %s", err)
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		log.Panicf("Error: %s", resp.Status)
+	}
+
+	decoder := json.NewDecoder(resp.Body)
+	var folderWatchingLocations []FolderWatchingLocation
+	err = decoder.Decode(&folderWatchingLocations)
+	if err != nil {
+		log.Panicf("Error decoding response: %s", err)
+	}
+	return folderWatchingLocations
+}
+
+func (c *CatapultBackend) GetFolderWatchingLocationById(folderId int) FolderWatchingLocation {
+	baseUrl, err := url.Parse(c.Url + "api/folderlocations/" + strconv.Itoa(folderId) + "/")
+	if err != nil {
+		log.Panicf("Error parsing URL: %s", err)
+	}
+
+	params := url.Values{}
+	baseUrl.RawQuery = params.Encode()
+
+	req, err := http.NewRequest("GET", baseUrl.String(), nil)
+	if err != nil {
+		log.Panicf("Error creating request: %s", err)
+	}
+
+	req.Header.Set("Authorization", "Token "+c.Token)
+
+	resp, err := c.Client.Do(req)
+	if err != nil {
+		log.Panicf("Error sending request: %s", err)
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		log.Panicf("Error: %s", resp.Status)
+	}
+
+	decoder := json.NewDecoder(resp.Body)
+	var folderWatchingLocation FolderWatchingLocation
+	err = decoder.Decode(&folderWatchingLocation)
+	if err != nil {
+		log.Panicf("Error decoding response: %s", err)
+	}
+	return folderWatchingLocation
+}

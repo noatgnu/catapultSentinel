@@ -1,0 +1,26 @@
+[
+    {
+        "id": 3,
+        "experiment_name": "D:\\watch_folder\\MRC-Astral2",
+        "created_at": "2024-07-14T14:55:14.811823Z",
+        "updated_at": "2024-07-14T14:55:14.811823Z",
+        "vendor": null,
+        "sample_count": null
+    },
+    {
+        "id": 2,
+        "experiment_name": "D:\\watch_folder\\MRC-Astral3",
+        "created_at": "2024-07-07T16:06:07.310067Z",
+        "updated_at": "2024-07-07T16:06:07.310067Z",
+        "vendor": null,
+        "sample_count": null
+    },
+    {
+        "id": 1,
+        "experiment_name": "D:\\watch_folder\\MRC-Astral",
+        "created_at": "2024-02-20T18:55:59.535895Z",
+        "updated_at": "2024-06-05T11:04:52.630904Z",
+        "vendor": ".raw",
+        "sample_count": 3
+    }
+]

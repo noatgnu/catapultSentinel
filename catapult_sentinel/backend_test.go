@@ -17,10 +17,11 @@ func TestCatapultBackend_GetFile(t *testing.T) {
 		filePath string
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   File
+		name    string
+		fields  fields
+		args    args
+		want    File
+		wantErr bool
 	}{
 		{
 			name: "Test GetFile",
@@ -41,6 +42,7 @@ func TestCatapultBackend_GetFile(t *testing.T) {
 				ReadyForProcessing:     true,
 				Id:                     5,
 			},
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
@@ -50,9 +52,10 @@ func TestCatapultBackend_GetFile(t *testing.T) {
 				Client: tt.fields.Client,
 				Token:  tt.fields.Token,
 			}
-			got := c.GetFile(tt.args.filePath)
-			if got.Id == 0 {
-				t.Errorf("GetFile() Id = %v, want non-zero", got.Id)
+			got, err := c.GetFile(tt.args.filePath)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetFile() error = %v, wantErr %v", err, tt.wantErr)
+				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("GetFile() = %v, want %v", got, tt.want)
@@ -71,9 +74,10 @@ func TestCatapultBackend_GetFiles(t *testing.T) {
 		filePaths []string
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name    string
+		fields  fields
+		args    args
+		wantErr bool
 	}{
 		{
 			name: "Test GetFiles",
@@ -88,6 +92,7 @@ func TestCatapultBackend_GetFiles(t *testing.T) {
 					"D:\\watch_folder\\MRC-Astral\\1000ngHeLa_180SPD_ES906_20240214_02.raw",
 				},
 			},
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
@@ -97,7 +102,11 @@ func TestCatapultBackend_GetFiles(t *testing.T) {
 				Client: tt.fields.Client,
 				Token:  tt.fields.Token,
 			}
-			got := c.GetFiles(tt.args.filePaths)
+			got, err := c.GetFiles(tt.args.filePaths)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetFiles() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
 			if len(got) <= 1 {
 				t.Errorf("GetFiles() length = %v, want > 1", len(got))
 			}
@@ -120,9 +129,10 @@ func TestCatapultBackend_GetExperimentsByNames(t *testing.T) {
 		experimentNames []string
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name    string
+		fields  fields
+		args    args
+		wantErr bool
 	}{
 		{
 			name: "Test GetExperimentsByNames",
@@ -134,6 +144,7 @@ func TestCatapultBackend_GetExperimentsByNames(t *testing.T) {
 			args: args{
 				experimentNames: []string{"D:\\watch_folder\\MRC-Astral", "D:\\watch_folder\\MRC-Astral2", "Experiment3"},
 			},
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
@@ -143,7 +154,11 @@ func TestCatapultBackend_GetExperimentsByNames(t *testing.T) {
 				Client: tt.fields.Client,
 				Token:  tt.fields.Token,
 			}
-			got := c.GetExperimentsByNames(tt.args.experimentNames)
+			got, err := c.GetExperimentsByNames(tt.args.experimentNames)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetExperimentsByNames() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
 			if len(got) <= 1 {
 				t.Errorf("GetExperimentsByNames() length = %v, want > 1", len(got))
 			}
@@ -154,7 +169,6 @@ func TestCatapultBackend_GetExperimentsByNames(t *testing.T) {
 			}
 		})
 	}
-
 }
 
 func TestCatapultBackend_UpdateFile(t *testing.T) {
@@ -167,9 +181,10 @@ func TestCatapultBackend_UpdateFile(t *testing.T) {
 		file File
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name    string
+		fields  fields
+		args    args
+		wantErr bool
 	}{
 		{
 			name: "Test UpdateFile",
@@ -187,6 +202,7 @@ func TestCatapultBackend_UpdateFile(t *testing.T) {
 					ReadyForProcessing: true,
 				},
 			},
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
@@ -196,7 +212,11 @@ func TestCatapultBackend_UpdateFile(t *testing.T) {
 				Client: tt.fields.Client,
 				Token:  tt.fields.Token,
 			}
-			got := c.UpdateFile(tt.args.file)
+			got, err := c.UpdateFile(tt.args.file)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UpdateFile() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
 			if got.Id == 0 {
 				t.Errorf("UpdateFile() Id = %v, want non-zero", got.Id)
 			}
@@ -214,9 +234,10 @@ func TestCatapultBackend_UpdateExperiments(t *testing.T) {
 		experiments []Experiment
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name    string
+		fields  fields
+		args    args
+		wantErr bool
 	}{
 		{
 			name: "Test UpdateExperiments",
@@ -231,6 +252,7 @@ func TestCatapultBackend_UpdateExperiments(t *testing.T) {
 					{Id: 2, ExperimentName: "Experiment2"},
 				},
 			},
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
@@ -240,7 +262,11 @@ func TestCatapultBackend_UpdateExperiments(t *testing.T) {
 				Client: tt.fields.Client,
 				Token:  tt.fields.Token,
 			}
-			got := c.UpdateExperiments(tt.args.experiments)
+			got, err := c.UpdateExperiments(tt.args.experiments)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UpdateExperiments() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
 			if len(got) <= 1 {
 				t.Errorf("UpdateExperiments() length = %v, want > 1", len(got))
 			}
@@ -252,6 +278,7 @@ func TestCatapultBackend_UpdateExperiments(t *testing.T) {
 		})
 	}
 }
+
 func TestCatapultBackend_CreateCatapultRunConfig(t *testing.T) {
 	type fields struct {
 		Url    string
@@ -262,9 +289,10 @@ func TestCatapultBackend_CreateCatapultRunConfig(t *testing.T) {
 		config CatapultRunConfig
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name    string
+		fields  fields
+		args    args
+		wantErr bool
 	}{
 		{
 			name: "Test CreateCatapultRunConfig",
@@ -281,6 +309,7 @@ func TestCatapultBackend_CreateCatapultRunConfig(t *testing.T) {
 					ConfigFilePath: "catapult/management/commands/diann_config.cat.yml",
 				},
 			},
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
@@ -290,7 +319,11 @@ func TestCatapultBackend_CreateCatapultRunConfig(t *testing.T) {
 				Client: tt.fields.Client,
 				Token:  tt.fields.Token,
 			}
-			got := c.CreateCatapultRunConfig(tt.args.config)
+			got, err := c.CreateCatapultRunConfig(tt.args.config)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("CreateCatapultRunConfig() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
 			if got.Id == 0 {
 				t.Errorf("CreateCatapultRunConfig() Id = %v, want non-zero", got.Id)
 			}
@@ -309,9 +342,10 @@ func TestCatapultBackend_FilterCatapultRunConfig(t *testing.T) {
 		experimentId int
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name    string
+		fields  fields
+		args    args
+		wantErr bool
 	}{
 		{
 			name: "Test FilterCatapultRunConfig",
@@ -324,6 +358,7 @@ func TestCatapultBackend_FilterCatapultRunConfig(t *testing.T) {
 				prefix:       "1",
 				experimentId: 2,
 			},
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
@@ -333,7 +368,11 @@ func TestCatapultBackend_FilterCatapultRunConfig(t *testing.T) {
 				Client: tt.fields.Client,
 				Token:  tt.fields.Token,
 			}
-			got := c.FilterCatapultRunConfig(tt.args.prefix, tt.args.experimentId)
+			got, err := c.FilterCatapultRunConfig(tt.args.prefix, tt.args.experimentId)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("FilterCatapultRunConfig() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
 			if len(got.Results) == 0 {
 				t.Errorf("FilterCatapultRunConfig() length = %v, want > 0", len(got.Results))
 			}
@@ -356,9 +395,10 @@ func TestCatapultBackend_GetFolderWatchingLocation(t *testing.T) {
 		folderPath string
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name    string
+		fields  fields
+		args    args
+		wantErr bool
 	}{
 		{
 			name: "Test GetFolderWatchingLocation",
@@ -370,6 +410,7 @@ func TestCatapultBackend_GetFolderWatchingLocation(t *testing.T) {
 			args: args{
 				folderPath: "D:\\watch_folder",
 			},
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
@@ -379,7 +420,11 @@ func TestCatapultBackend_GetFolderWatchingLocation(t *testing.T) {
 				Client: tt.fields.Client,
 				Token:  tt.fields.Token,
 			}
-			got := c.GetFolderWatchingLocation(tt.args.folderPath)
+			got, err := c.GetFolderWatchingLocation(tt.args.folderPath)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetFolderWatchingLocation() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
 			if got.Id == 0 {
 				t.Errorf("GetFolderWatchingLocation() Id = %v, want non-zero", got.Id)
 			}
@@ -394,8 +439,9 @@ func TestCatapultBackend_GetAllFolderWatchingLocations(t *testing.T) {
 		Token  string
 	}
 	tests := []struct {
-		name   string
-		fields fields
+		name    string
+		fields  fields
+		wantErr bool
 	}{
 		{
 			name: "Test GetAllFolderWatchingLocations",
@@ -404,6 +450,7 @@ func TestCatapultBackend_GetAllFolderWatchingLocations(t *testing.T) {
 				Client: &http.Client{},
 				Token:  os.Getenv("API_TOKEN"),
 			},
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
@@ -413,7 +460,11 @@ func TestCatapultBackend_GetAllFolderWatchingLocations(t *testing.T) {
 				Client: tt.fields.Client,
 				Token:  tt.fields.Token,
 			}
-			got := c.GetAllFolderWatchingLocations()
+			got, err := c.GetAllFolderWatchingLocations()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetAllFolderWatchingLocations() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
 			if len(got) == 0 {
 				t.Errorf("GetAllFolderWatchingLocations() length = %v, want > 0", len(got))
 			}
@@ -436,9 +487,10 @@ func TestCatapultBackend_GetFolderWatchingLocationById(t *testing.T) {
 		folderId int
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name    string
+		fields  fields
+		args    args
+		wantErr bool
 	}{
 		{
 			name: "Test GetFolderWatchingLocationById",
@@ -450,6 +502,7 @@ func TestCatapultBackend_GetFolderWatchingLocationById(t *testing.T) {
 			args: args{
 				folderId: 1,
 			},
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
@@ -459,7 +512,11 @@ func TestCatapultBackend_GetFolderWatchingLocationById(t *testing.T) {
 				Client: tt.fields.Client,
 				Token:  tt.fields.Token,
 			}
-			got := c.GetFolderWatchingLocationById(tt.args.folderId)
+			got, err := c.GetFolderWatchingLocationById(tt.args.folderId)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetFolderWatchingLocationById() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
 			if got.Id == 0 {
 				t.Errorf("GetFolderWatchingLocationById() Id = %v, want non-zero", got.Id)
 			}

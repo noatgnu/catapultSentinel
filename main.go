@@ -1,9 +1,7 @@
 package main
 
 import (
-	"bytes"
 	"database/sql"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"github.com/noatgnu/catapultSentinel/catapult_sentinel"
@@ -18,8 +16,9 @@ import (
 
 var token *string
 var backendURL *string
+var catapultBackend *catapult_sentinel.CatapultBackend
 
-func loadConfigYaml(filePath string, folderWatchingLocation string, backendURL string) {
+func loadConfigYaml(filePath string, folderWatchingLocation int) {
 	fmt.Printf("loading config file %s\n", filePath)
 	configData := make(map[string]interface{})
 	file, err := os.Open(filePath)
@@ -37,16 +36,15 @@ func loadConfigYaml(filePath string, folderWatchingLocation string, backendURL s
 	if configData["cat_ready"] == true {
 		fmt.Printf("config file %s is ready\n", filePath)
 		parentFolder := filepath.Dir(filePath)
-		exp := Experiment{ExperimentName: parentFolder}
-		config := CatapultRunConfig{
+
+		exp := catapultBackend.GetExperimentByName(parentFolder)
+		config := catapult_sentinel.CatapultRunConfig{
 			ConfigFilePath:         filePath,
 			FolderWatchingLocation: folderWatchingLocation,
-			Experiment:             exp.ExperimentName,
+			Experiment:             exp.Id,
 			Content:                configData,
 		}
-		// Send HTTP request to create CatapultRunConfig
-		configJson, _ := json.Marshal(config)
-		http.Post(fmt.Sprintf("%s/api/catapult_run_config/", backendURL), "application/json", bytes.NewBuffer(configJson))
+		catapultBackend.CreateCatapultRunConfig(config)
 		fmt.Printf("config file %s loaded successfully\n", filePath)
 	}
 }
@@ -66,7 +64,7 @@ func getFolderSize(folderPath string) int64 {
 	return totalSize
 }
 
-func initialScan(folderWatchingLocation FolderWatchingLocation, backendURL string) {
+func initialScan(folderWatchingLocation catapult_sentinel.FolderWatchingLocation) {
 	err := filepath.Walk(folderWatchingLocation.FolderPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -83,18 +81,18 @@ func initialScan(folderWatchingLocation FolderWatchingLocation, backendURL strin
 					fileLocation = filepath.Dir(path)
 					fileSize = getFolderSize(fileLocation)
 				}
-				exp := Experiment{ExperimentName: filepath.Dir(fileLocation)}
-				file := File{
+				exp := catapultBackend.GetExperimentByName(filepath.Dir(fileLocation))
+				file := catapult_sentinel.File{
 					FilePath:               strings.Replace(fileLocation, folderWatchingLocation.FolderPath, "", 1),
-					FolderWatchingLocation: folderWatchingLocation.FolderPath,
+					FolderWatchingLocation: folderWatchingLocation.Id,
 					Size:                   fileSize,
-					Experiment:             exp.ExperimentName,
+					Experiment:             exp.Id,
 				}
-				// Send HTTP request to create File
-				fileJson, _ := json.Marshal(file)
-				http.Post(fmt.Sprintf("%s/api/file/", backendURL), "application/json", bytes.NewBuffer(fileJson))
+				catapultBackend.GetFile(file.FilePath)
+				newFile := catapultBackend.CreateFile(file)
+
 			} else if strings.HasSuffix(info.Name(), ".cat.yml") || strings.HasSuffix(info.Name(), ".cat.yaml") {
-				loadConfigYaml(path, folderWatchingLocation.FolderPath, backendURL)
+				loadConfigYaml(path, folderWatchingLocation.Id)
 			}
 		}
 		return nil
@@ -104,7 +102,7 @@ func initialScan(folderWatchingLocation FolderWatchingLocation, backendURL strin
 	}
 }
 
-func watchFolder(folderWatchingLocation FolderWatchingLocation, backendURL string) {
+func watchFolder(folderWatchingLocation catapult_sentinel.FolderWatchingLocation) {
 	db, err := catapult_sentinel.InitDB("fileinfo.db")
 	if err != nil {
 		log.Fatal(err)
@@ -154,7 +152,7 @@ func watchFolder(folderWatchingLocation FolderWatchingLocation, backendURL strin
 				err := db.QueryRow("SELECT last_modified FROM files WHERE path = ?", path).Scan(&dbLastModified)
 				if err == sql.ErrNoRows {
 					// New file detected
-					handleNewFile(path, info, folderWatchingLocation, backendURL)
+					handleNewFile(path, info, folderWatchingLocation)
 					_, err = db.Exec("INSERT INTO files (path, last_modified, size, is_folder) VALUES (?, ?, ?, ?)", path, lastModified, size, isFolder)
 					if err != nil {
 						log.Println(err)
@@ -167,7 +165,7 @@ func watchFolder(folderWatchingLocation FolderWatchingLocation, backendURL strin
 	}
 }
 
-func handleNewFile(path string, info os.FileInfo, folderWatchingLocation FolderWatchingLocation, backendURL string) {
+func handleNewFile(path string, info os.FileInfo, folderWatchingLocation catapult_sentinel.FolderWatchingLocation) catapult_sentinel.File {
 	extension := filepath.Ext(info.Name())
 	if strings.Contains(folderWatchingLocation.Extensions, extension) {
 		fileSize := info.Size()
@@ -176,19 +174,18 @@ func handleNewFile(path string, info os.FileInfo, folderWatchingLocation FolderW
 			fileLocation = filepath.Dir(path)
 			fileSize = getFolderSize(fileLocation)
 		}
-		exp := Experiment{ExperimentName: filepath.Dir(fileLocation)}
-		file := File{
+		exp := catapultBackend.GetExperimentByName(filepath.Dir(fileLocation))
+		file := catapult_sentinel.File{
 			FilePath:               strings.Replace(fileLocation, folderWatchingLocation.FolderPath, "", 1),
-			FolderWatchingLocation: folderWatchingLocation.FolderPath,
+			FolderWatchingLocation: folderWatchingLocation.Id,
 			Size:                   fileSize,
-			Experiment:             exp.ExperimentName,
+			Experiment:             exp.Id,
 		}
-		// Send HTTP request to create File
-		fileJson, _ := json.Marshal(file)
-		http.Post(fmt.Sprintf("%s/api/file/", backendURL), "application/json", bytes.NewBuffer(fileJson))
+		return catapultBackend.CreateFile(file)
 	} else if strings.HasSuffix(info.Name(), ".cat.yml") || strings.HasSuffix(info.Name(), ".cat.yaml") {
-		loadConfigYaml(path, folderWatchingLocation.FolderPath, backendURL)
+		loadConfigYaml(path, folderWatchingLocation.Id)
 	}
+	return catapult_sentinel.File{}
 }
 
 func main() {
@@ -196,21 +193,25 @@ func main() {
 	token = flag.String("token", "", "The token")
 	flag.Parse()
 
-	// Replace with actual API call to get FolderWatchingLocation objects
-	folderWatchingLocations := []FolderWatchingLocation{
-		{
-			FolderPath:    "/path/to/watch",
-			Extensions:    ".mzML,.yml,.yaml",
-			IgnoreTerm:    "ignore",
-			NetworkFolder: false,
-		},
+	catapultBackend = &catapult_sentinel.CatapultBackend{
+		Url:    *backendURL,
+		Client: &http.Client{},
+		Token:  *token,
 	}
+
+	folderWatchingLocations := catapultBackend.GetAllFolderWatchingLocations()
 
 	for _, folder := range folderWatchingLocations {
-		go initialScan(folder, *backendURL)
-		go watchFolder(folder, *backendURL)
+		go func() {
+			defer func() {
+				if r := recover(); r != nil {
+					log.Println("Recovered in f", r)
+				}
+			}()
+			initialScan(folder)
+			watchFolder(folder)
+		}()
 	}
 
-	// Keep the main function running
 	select {}
 }

@@ -5,6 +5,14 @@ import (
 	"testing"
 )
 
+type LocalFile struct {
+	Path         string `json:"path"`
+	Size         int64  `json:"size"`
+	IsFolder     bool   `json:"is_folder"`
+	LastModified int64  `json:"last_modified"`
+	RemoteId     int64  `json:"remote_id"`
+}
+
 // setupTestDB sets up an in-memory SQLite database for testing purposes.
 // It creates the necessary tables for storing file sizes and copied status.
 //
@@ -24,7 +32,8 @@ func setupTestDB(t *testing.T) *sql.DB {
 	  path TEXT PRIMARY KEY,
 	  size INTEGER,
 	  is_folder BOOLEAN,
-	  last_modified TIMESTAMP
+	  last_modified TIMESTAMP,
+	  remote_id INTEGER
 	 );`
 	_, err = db.Exec(createTableSQL)
 	if err != nil {
@@ -63,4 +72,55 @@ func InitDB(dbPath string) (*sql.DB, error) {
 	}
 
 	return db, nil
+}
+
+func CheckFileExists(db *sql.DB, path string) (bool, error) {
+	var exists bool
+	err := db.QueryRow("SELECT EXISTS(SELECT 1 FROM files WHERE path = ?)", path).Scan(&exists)
+	if err != nil {
+		return false, err
+	}
+	return exists, nil
+}
+
+func GetFile(db *sql.DB, path string) (LocalFile, error) {
+	var file LocalFile
+	err := db.QueryRow("SELECT path, size, is_folder, last_modified, remote_id FROM files WHERE path = ?", path).Scan(&file.Path, &file.Size, &file.IsFolder, &file.LastModified, &file.RemoteId)
+	if err != nil {
+		return LocalFile{}, err
+	}
+	return file, nil
+}
+
+func InsertFile(db *sql.DB, file LocalFile) error {
+	_, err := db.Exec("INSERT INTO files (path, size, is_folder, last_modified, remote_id) VALUES (?, ?, ?, ?, ?)", file.Path, file.Size, file.IsFolder, file.LastModified, file.RemoteId)
+	return err
+}
+
+func UpdateFile(db *sql.DB, file LocalFile) error {
+	_, err := db.Exec("UPDATE files SET size = ?, is_folder = ?, last_modified = ?, remote_id = ? WHERE path = ?", file.Size, file.IsFolder, file.LastModified, file.RemoteId, file.Path)
+	return err
+}
+
+func UpdateMultipleFiles(db *sql.DB, files []LocalFile) error {
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+
+	stmt, err := tx.Prepare("UPDATE files SET size = ?, is_folder = ?, last_modified = ?, remote_id = ? WHERE path = ?")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	for _, file := range files {
+		_, err = stmt.Exec(file.Size, file.IsFolder, file.LastModified, file.RemoteId, file.Path)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	return tx.Commit()
 }

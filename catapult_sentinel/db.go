@@ -2,6 +2,7 @@ package catapult_sentinel
 
 import (
 	"database/sql"
+	_ "modernc.org/sqlite"
 	"testing"
 )
 
